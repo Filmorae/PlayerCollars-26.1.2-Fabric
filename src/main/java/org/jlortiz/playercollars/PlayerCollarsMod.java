@@ -300,12 +300,17 @@ public class PlayerCollarsMod implements ModInitializer {
 
 			ServerWorld sworld = (ServerWorld) world;
 			AccessoriesCapability cap = AccessoriesCapability.get(player);
-			if (cap != null && sworld.getGameRules().getBoolean(ALLOW_ATTACK_OWNER)) {
+			if (cap != null) {
 				for (SlotEntryReference sr : cap.getEquipped((x) -> x.isIn(PlayerCollarsMod.COLLAR_TAG))) {
 					OwnerComponent owner = sr.stack().get(OWNER_COMPONENT_TYPE);
 					if (owner != null && owner.uuid().equals(entity.getUuid())) {
 						// Collared players are allowed to attack owners, but have 75% damage returned to them
 						player.sendMessage(Text.translatable("message.playercollars.no_attack_owner").formatted(Formatting.RED), true);
+
+						if (!sworld.getGameRules().getBoolean(ALLOW_ATTACK_OWNER)) {
+							return ActionResult.FAIL;
+						}
+
 						double f = player.getAttributeValue(EntityAttributes.ATTACK_DAMAGE);
 						f = (f - 1) * 0.75 + 1;
 						player.damage(sworld, player.getDamageSources().playerAttack(player), (float) Math.ceil(f));
