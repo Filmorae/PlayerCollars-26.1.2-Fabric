@@ -1,6 +1,6 @@
 {
-  "model": {
-    "type": "minecraft:model",
-    "model": "playercollars:item/grooming_brush"
+  "parent": "item/generated",
+  "textures": {
+    "layer0": "playercollars:item/grooming_brush"
   }
 }
