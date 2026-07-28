@@ -95,7 +95,7 @@ sourceSets {
             srcDir 'src/main/generated'
         }
         java {
-            // TODO(26.1.2): Fabric's datagen/model provider APIs changed substantially.
+            // TODO(26.2): Fabric's datagen/model provider APIs changed substantially.
             // Keep the datagen sources in-tree, but do not compile them into the runtime mod jar.
             exclude 'org/jlortiz/playercollars/datagen/**'
         }

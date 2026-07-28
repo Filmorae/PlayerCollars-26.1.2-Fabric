@@ -41,9 +41,9 @@
   "accessWidener" : "playercollars.accesswidener",
   "depends": {
     "fabricloader": ">=0.19.3",
-    "minecraft": ">=26.1.2",
+    "minecraft": "26.2",
     "java": ">=25",
-    "fabric-api": "*",
-    "trinkets_updated": "*"
+    "fabric-api": "0.155.2",
+    "trinkets_updated": "4.1.0-beta.3"
   }
 }

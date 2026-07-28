@@ -4,9 +4,9 @@ Lets players wear pet collars. See branches for possible versions. Some pre-comp
 
 This mod requires [Trinkets Updated](https://modrinth.com/mod/trinkets-updated) under Fabric.
 
-## PlayerCollars / Leashable Collars for Minecraft 26.1.2 Fabric
+## PlayerCollars / Leashable Collars for Minecraft 26.2 Fabric
 
-This pre-release is a community maintenance build of PlayerCollars / Leashable Collars for Minecraft 26.1.2 on Fabric.
+This pre-release is a community maintenance build of PlayerCollars / Leashable Collars for Minecraft 26.2 on Fabric.
 
 This port is based on ElsaCounteragent's Fabric fork. Special thanks to Elsa for the previous fork work, which made this migration possible.
 
@@ -14,7 +14,7 @@ The goal of this build is to restore core playability on the modern Fabric stack
 
 ### Main changes
 
-- Updated the project to target Minecraft 26.1.2, Fabric Loader, Fabric API, and Trinkets Updated.
+- Updated the project to target Minecraft 26.2, Fabric Loader, Fabric API, and Trinkets Updated.
 - Restored core collar, paws, leash, pet bowl, dog bed, grooming, and laser pointer functionality.
 - Fixed compatibility issues with the current Trinkets Updated slot system.
 - Fixed crashes related to leash-related enchantments and tooltip rendering.
@@ -29,9 +29,9 @@ The goal of this build is to restore core playability on the modern Fabric stack
 
 Although this build is based on ElsaCounteragent's fork, it should not be considered a complete recreation of every feature or configuration system from that fork.
 
-Some complex configurable interaction features were simplified or replaced with more stable hardcoded behavior. This was done to prioritize stability, compatibility, and practical usability on Minecraft 26.1.2.
+Some complex configurable interaction features were simplified or replaced with more stable hardcoded behavior. This was done to prioritize stability, compatibility, and practical usability on Minecraft 26.2.
 
-As a result, this pre-release is best treated as a playable compatibility restoration build for Minecraft 26.1.2 Fabric, rather than a full feature-complete continuation of all upstream fork additions.
+As a result, this pre-release is best treated as a playable compatibility restoration build for Minecraft 26.2 Fabric, rather than a full feature-complete continuation of all upstream fork additions.
 
 ### Disclaimer
 
