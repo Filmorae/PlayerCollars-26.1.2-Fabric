@@ -12,18 +12,18 @@
 - Distribution: Ubuntu 24.04.3 LTS
 - Architecture: x86_64
 - JDK: Eclipse Temurin OpenJDK 25.0.3+9 LTS, x64
-- `JAVA_HOME`: `/workspace/tools/jdk25`
+- `JAVA_HOME`: session-local Eclipse Temurin JDK 25 installation outside the repository
 - Java compiler: `javac 25.0.3`
 - Git: 2.51.1
 - GitHub CLI: 2.96.0
-- Gradle Wrapper: 9.4.0
+- Gradle Wrapper: 9.5.0
 - Gradle launcher and daemon JVM: Eclipse Temurin 25.0.3+9 LTS
 
-The system package database is read-only, so JDK 25 and GitHub CLI were installed under the writable workspace. Their official archives and SHA-256 checksums were verified before extraction. Gradle's Java process could not use the Work proxy for the initial wrapper download, so the official Gradle 9.4.0 distribution was downloaded with `curl`, verified against Gradle's published SHA-256, and placed in the wrapper cache without changing the repository's distribution URL.
+The system package database is read-only, so JDK 25 and GitHub CLI were installed under the writable workspace. Their official archives and SHA-256 checksums were verified before extraction. Gradle's Java process could not use the Work proxy for the initial wrapper download, so the official Gradle distributions were downloaded with `curl` and verified against Gradle's published SHA-256 checksums.
 
 ## Current Phase
 
-Dependency discovery for Minecraft 26.2.
+Dedicated-server startup and runtime validation.
 
 ## Completed Work
 
@@ -33,13 +33,40 @@ Dependency discovery for Minecraft 26.2.
 - Created and published the `26.2` branch from the exact baseline commit.
 - Read the build configuration, metadata, mixin configuration, access widener, entrypoints, registration, networking, interaction, leash, item/block, rendering, serialization, and recent-history areas of the project.
 - Confirmed that datagen Java sources were intentionally excluded during the 26.1.2 migration because Fabric's datagen/model provider APIs changed substantially. Existing generated resources remain runtime inputs. Restoring datagen compilation is out of scope unless it becomes necessary for a correct 26.2 runtime build.
+- Confirmed Minecraft 26.2 is a release and declares Java 25 in Mojang's version metadata.
+- Confirmed Fabric Loader 0.19.3 is the current stable loader exposed for Minecraft 26.2.
+- Confirmed Fabric API `0.155.2+26.2` exists in the official Fabric Maven.
+- Confirmed Fabric Loom `1.17.17` is a published stable plugin release.
+- Confirmed Trinkets Updated `4.1.0-beta.3+26.2` is published by the official project on Modrinth and the Nucleoid Maven. The downloaded Modrinth JAR matched its published SHA-1, identifies itself as `trinkets_updated`, and declares Minecraft `26.2.x`.
+- Compared the official Trinkets Updated source tags `4.0.0-beta.2+26.1` and `4.1.0-beta.3+26.2`. The attachment iteration, slot access, component-equipment, and renderer APIs used by this project remain available. The notable removal of tuple-returning `getEquipped` methods does not affect the current `EquippedTrinkets` adapter, which already uses iteration and predicates.
+- Updated the project dependency set and metadata to Minecraft 26.2, Fabric API `0.155.2+26.2`, Loom `1.17.17`, and Trinkets Updated `4.1.0-beta.3+26.2`.
+- Set the mod version to `1.6.1+26.2` and narrowed runtime dependency declarations to the verified versions.
+- Upgraded the Gradle Wrapper to 9.5.0 and pinned Gradle's official SHA-256.
+- Generated and inspected the mapped Minecraft 26.2 sources before changing APIs.
+- Migrated screen access to the new `Minecraft.gui` owner, block-position
+  bottom-center lookup to `Vec3.atBottomCenterOf`, the turtle registry constant
+  to `EntityTypes.TURTLE`, and the camera accessor to `GameRenderer.mainCamera`.
+- Migrated the laser marker from immediate buffer access to Fabric's
+  `COLLECT_SUBMITS` event and `SubmitNodeCollector` custom geometry path.
+- Removed the obsolete `DogBedBlock.newBlockEntity` override after `BedBlock`
+  stopped implementing the block-entity contract; Dog Bed still remains a
+  normal two-block bed with the existing custom shape and interaction logic.
+- Updated the inactive Accessories compatibility renderer signature to the
+  26.2 submit-node rendering type. Runtime equipment behavior continues to use
+  Trinkets Updated.
+- Completed `compileJava`, access-widener validation, resource processing,
+  remapping, checks, and a clean full build on Java 25.
 
 ## Important Decisions
 
 - Preserve all registry IDs, payload IDs, data-component IDs/codecs, tags, resource paths, package names, and current gameplay behavior.
 - Keep the existing generated resources and datagen exclusion strategy.
 - Use real published dependency versions and let compilation/runtime errors drive localized source changes.
-- Retain Gradle Wrapper 9.4.0 unless the selected Loom release proves incompatible.
+- Use Gradle Wrapper 9.5.0. Loom 1.17.17 declares Gradle Plugin API 9.5.0;
+  Gradle 9.4.0 rejected Loom's `runtimeElements` variant before project
+  configuration, proving the wrapper upgrade necessary.
+- Use Fabric Loader `0.19.3`, Fabric API `0.155.2+26.2`, Fabric Loom `1.17.17`, and Trinkets Updated `4.1.0-beta.3+26.2`.
+- Declare Minecraft compatibility as exact `26.2`. Fabric dependency comparisons ignore build metadata, so exact `0.155.2` and `4.1.0-beta.3` predicates match the verified `+26.2` artifacts without claiming unrelated API versions.
 
 ## Validation Results
 
@@ -49,7 +76,19 @@ Dependency discovery for Minecraft 26.2.
 - `javac -version`: 25.0.3
 - `git --version`: 2.51.1
 - `gh --version`: 2.96.0
-- `gradlew --version`: Gradle 9.4.0 on Java 25.0.3
+- `gradlew --version`: Gradle 9.5.0 on Java 25.0.3
+
+### Minecraft 26.2 Build
+
+Commands:
+
+- `./gradlew compileJava --offline --stacktrace`
+- `./gradlew clean build --offline --stacktrace`
+
+Result: both succeeded. The clean build compiled runtime sources, processed
+resources and nested dependencies, produced the remapped production JAR,
+validated the access widener, and completed all available checks. The project
+currently has no Java unit-test sources, so Gradle reported `test NO-SOURCE`.
 
 ### 26.1.2 Baseline Build
 
@@ -66,15 +105,22 @@ The repository's `gradlew` was tracked without the executable bit, so direct `./
 - System package installation: blocked because `/var/lib/apt` is read-only.
 - Initial Gradle Wrapper download from Java: blocked by the Work network proxy not being inherited by Java. Resolved by downloading and checksum-verifying the official distribution with `curl`.
 - Baseline build: blocked by the unavailable `1.16-SNAPSHOT` Loom plugin. This will be resolved by selecting a real 26.2-compatible Loom release.
+- Loom 1.17.17 on Gradle 9.4.0: plugin resolution reached the official Maven
+  successfully, but variant selection failed because Loom requires Gradle Plugin
+  API 9.5.0. Resolved by updating the wrapper to Gradle 9.5.0.
+- The managed Work sandbox denied Loom's Unix-domain-socket capability probe
+  with `Operation not permitted`. An environment-only patch in the local Gradle
+  artifact cache treats that result as “unsupported,” which only disables
+  decompiler worker socket logging. No proxy, sandbox path, patched dependency,
+  or Work-specific setting is present in the repository or production JAR.
 
 ## Open Issues
 
-- Confirm exact Minecraft 26.2-compatible versions of Fabric Loader, Fabric API, Fabric Loom, and Trinkets Updated.
-- Compile against the selected versions and migrate any changed Minecraft/Fabric/Trinkets APIs.
-- Validate mixins and the access widener against 26.2 mappings.
-- Complete clean build, JAR inspection, fresh and repeat dedicated-server starts, and optional headless client launch.
+- Inspect the production JAR contents and embedded metadata.
+- Complete fresh and repeat dedicated-server starts and optional headless client launch.
 - Prepare the Windows gameplay regression checklist and final production JAR.
 
 ## Next Step
 
-Query official Fabric and Trinkets Updated release metadata, pin a reproducible dependency set, update build metadata, and run the first Minecraft 26.2 compile.
+Run a fresh dedicated Fabric server, wait for a completed world startup, stop it
+cleanly, and repeat with the saved test world.

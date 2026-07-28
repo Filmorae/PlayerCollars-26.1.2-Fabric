@@ -252,7 +252,7 @@ public class PlayerCollarsMod implements ModInitializer {
 
 		plr.push(vecTo.scale(Math.abs(getFactor.apply(distance))));
 		plr.connection.send(new ClientboundSetEntityMotionPacket(plr));
-		// TODO(26.1.2): The old hasImpulse flag no longer exists; the motion packet above keeps the server/client sync.
+		// The old hasImpulse flag no longer exists; the motion packet above keeps server/client sync.
 		return InteractionResult.SUCCESS;
 	}
 

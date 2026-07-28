@@ -90,7 +90,7 @@ public final class LeashProxyEntity extends Turtle {
     public static final String TEAM_NAME = "leashplayersimpl";
 
     public LeashProxyEntity(@NotNull LivingEntity target) {
-        super(EntityType.TURTLE, target.level());
+        super(EntityTypes.TURTLE, target.level());
         this.target = target;
 
         setHealth(1.0F);

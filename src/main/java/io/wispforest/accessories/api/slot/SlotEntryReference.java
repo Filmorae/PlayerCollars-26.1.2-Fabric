@@ -9,7 +9,7 @@ public record SlotEntryReference(ItemStack stack, Reference reference) {
 
     public static final class Reference {
         public void setStack(ItemStack stack) {
-            // TODO(26.1.2): Restore slot mutation when Accessories publishes a compatible API.
+            // Legacy no-op shim; live slot mutation is handled by Trinkets Updated.
         }
     }
 }

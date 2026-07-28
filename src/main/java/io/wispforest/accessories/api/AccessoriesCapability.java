@@ -11,7 +11,7 @@ public final class AccessoriesCapability {
     private AccessoriesCapability() {
     }
 
-    // TODO(26.1.2): Replace this placeholder when Accessories publishes a Fabric 26.1.2 artifact.
+    // Legacy compatibility shim; Player Collars uses Trinkets Updated at runtime.
     public static AccessoriesCapability get(LivingEntity entity) {
         return null;
     }

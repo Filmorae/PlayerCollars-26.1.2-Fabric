@@ -22,9 +22,9 @@ public class RegisterClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         ClientHooks.setCollarDyeScreenOpener((stack, playerId) ->
-                Minecraft.getInstance().setScreen(new CollarDyeScreen(stack, playerId)));
+                Minecraft.getInstance().gui.setScreen(new CollarDyeScreen(stack, playerId)));
         ClientHooks.setDeedScreenOpener((stack, player) ->
-                Minecraft.getInstance().setScreen(new DeedItemScreen(stack, player)));
+                Minecraft.getInstance().gui.setScreen(new DeedItemScreen(stack, player)));
         ClientHooks.setInvisibleFenceParticleFilter(() -> {
             Minecraft client = Minecraft.getInstance();
             return client.player != null && EquippedTrinkets.hasEquipped(client.player, (x) -> x.is(PlayerCollarsMod.COLLAR_TAG));
@@ -44,10 +44,10 @@ public class RegisterClient implements ClientModInitializer {
         ClientPlayNetworking.registerGlobalReceiver(PacketOpenPetControl.ID, (payload, context) ->
                 context.client().execute(() -> {
                     Minecraft client = context.client();
-                    if (client.screen instanceof PetControlScreen screen && screen.isFor(payload.petId())) {
+                    if (client.gui.screen() instanceof PetControlScreen screen && screen.isFor(payload.petId())) {
                         screen.update(payload);
                     } else {
-                        client.setScreen(new PetControlScreen(payload));
+                        client.gui.setScreen(new PetControlScreen(payload));
                     }
                 }));
         LevelRenderEvents.END_MAIN.register(RotationLerpHandler::turnTowardsClick);

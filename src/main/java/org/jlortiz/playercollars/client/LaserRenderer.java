@@ -1,7 +1,6 @@
 package org.jlortiz.playercollars.client;
 
 import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.level.LevelRenderEvents;
 import net.minecraft.client.Minecraft;
@@ -14,13 +13,12 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import org.jlortiz.playercollars.PlayerCollarsMod;
 import org.jlortiz.playercollars.item.LaserPointerItem;
-import org.joml.Matrix4f;
 
 public class LaserRenderer {
 
     public static void register() {
         // This event runs every single frame right before the screen is finished drawing!
-        LevelRenderEvents.END_MAIN.register(context -> {
+        LevelRenderEvents.COLLECT_SUBMITS.register(context -> {
             Minecraft client = Minecraft.getInstance();
             if (client.level == null) return;
 
@@ -56,7 +54,7 @@ public class LaserRenderer {
     }
 
     private static void drawLaserSquare(LevelRenderContext context, BlockHitResult hit) {
-        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.getMainCamera().position();
+        Vec3 cameraPos = Minecraft.getInstance().gameRenderer.mainCamera().position();
         Vec3 hitPos = hit.getLocation();
         Direction side = hit.getDirection();
 
@@ -72,17 +70,16 @@ public class LaserRenderer {
         // 3. Rotate the matrix so our square lies perfectly flat against the block face!
         matrices.mulPose(side.getRotation());
 
-        Matrix4f positionMatrix = matrices.last().pose();
-        VertexConsumer buffer = context.bufferSource().getBuffer(RenderTypes.debugQuads());
-
         // The size of your laser dot!
         float size = 0.05f;
 
         // 4. Draw the 4 corners of our bright green square! (R, G, B, Alpha)
-        buffer.addVertex(positionMatrix, -size, -size, 0).setColor(0, 255, 0, 255);
-        buffer.addVertex(positionMatrix, -size, size, 0).setColor(0, 255, 0, 255);
-        buffer.addVertex(positionMatrix, size, size, 0).setColor(0, 255, 0, 255);
-        buffer.addVertex(positionMatrix, size, -size, 0).setColor(0, 255, 0, 255);
+        context.submitNodeCollector().submitCustomGeometry(matrices, RenderTypes.debugQuads(), (pose, buffer) -> {
+            buffer.addVertex(pose, -size, -size, 0).setColor(0, 255, 0, 255);
+            buffer.addVertex(pose, -size, size, 0).setColor(0, 255, 0, 255);
+            buffer.addVertex(pose, size, size, 0).setColor(0, 255, 0, 255);
+            buffer.addVertex(pose, size, -size, 0).setColor(0, 255, 0, 255);
+        });
 
         matrices.popPose();
     }

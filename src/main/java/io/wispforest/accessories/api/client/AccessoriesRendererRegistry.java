@@ -9,6 +9,6 @@ public final class AccessoriesRendererRegistry {
     }
 
     public static void registerRenderer(Item item, Supplier<? extends AccessoryRenderer> renderer) {
-        // No-op placeholder until Accessories has a 26.1.2 Fabric release.
+        // Legacy no-op shim; renderers are registered through Trinkets Updated.
     }
 }

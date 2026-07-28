@@ -7,6 +7,6 @@ public final class AccessoryRegistry {
     }
 
     public static void register(Item item, AccessoryItem accessory) {
-        // No-op placeholder until Accessories has a 26.1.2 Fabric release.
+        // Legacy no-op shim; accessories are registered through Trinkets Updated.
     }
 }
