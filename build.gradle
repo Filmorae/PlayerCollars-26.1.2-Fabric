@@ -80,6 +80,13 @@ loom {
 
             runDir "run"
         }
+
+        server {
+            name "Server"
+            vmArg "-Dfabric.development=false"
+
+            runDir "run/server"
+        }
     }
 
     accessWidenerPath = file("src/main/resources/playercollars.accesswidener")

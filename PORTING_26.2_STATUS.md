@@ -23,7 +23,7 @@ The system package database is read-only, so JDK 25 and GitHub CLI were installe
 
 ## Current Phase
 
-Dedicated-server startup and runtime validation.
+Migration complete; awaiting interactive Windows gameplay and legacy-world tests.
 
 ## Completed Work
 
@@ -56,6 +56,17 @@ Dedicated-server startup and runtime validation.
   Trinkets Updated.
 - Completed `compileJava`, access-widener validation, resource processing,
   remapping, checks, and a clean full build on Java 25.
+- Added an explicit isolated `run/server` Loom configuration for repeatable
+  dedicated-server validation.
+- Fixed `BoneItemMixin` after runtime validation showed that `Items` registration
+  now uses `ResourceKey<Item>` rather than string IDs. The redirect preserves
+  all vanilla simple item registrations and adds the existing head-equippable
+  component only when the key equals `ItemIds.BONE`.
+- Removed the dangling `fabric-datagen` entrypoint from production metadata
+  because its source set remains deliberately excluded. Generated runtime
+  assets stay packaged, and no missing datagen class is declared by the JAR.
+- Created the complete Windows gameplay and 26.1.2 data-compatibility checklist
+  in `GAMEPLAY_TEST_26.2.md`.
 
 ## Important Decisions
 
@@ -84,11 +95,75 @@ Commands:
 
 - `./gradlew compileJava --offline --stacktrace`
 - `./gradlew clean build --offline --stacktrace`
+- `./gradlew clean build --stacktrace` (final acceptance build)
 
 Result: both succeeded. The clean build compiled runtime sources, processed
 resources and nested dependencies, produced the remapped production JAR,
 validated the access widener, and completed all available checks. The project
 currently has no Java unit-test sources, so Gradle reported `test NO-SOURCE`.
+The final exact acceptance command also succeeded in 8 seconds with all six
+applicable build/check tasks successful or up-to-date.
+
+### Dedicated Server
+
+The first runtime attempt reached Minecraft bootstrap but failed before world
+creation because `BoneItemMixin` still shadowed the removed string-based
+`Items.registerItem` overload. This was treated as a failed attempt even though
+the Loom JavaExec task returned a successful Gradle status.
+
+After the Mixin fix:
+
+- Fresh start: loaded Minecraft 26.2, 48 Fabric mods, Player Collars
+  `1.6.1+26.2`, Trinkets Updated `4.1.0-beta.3+26.2`, 1643 recipes, and 1745
+  advancements; created a new world and reached `Done (2.066s)`.
+- Clean stop: the `stop` console command saved players, all worlds, all chunks,
+  and all three dimensions before the Gradle task exited successfully.
+- Repeat start: reopened the saved world and reached `Done (0.238s)`.
+- Repeat clean stop: again saved all dimensions and exited successfully.
+
+No Player Collars Mixin, access-widener, registry, resource, payload, recipe,
+tag-loading, Trinkets attachment, or data-save fatal error remained in either
+successful server run.
+
+Non-fatal external/environment warnings:
+
+- Trinkets Updated logs one missing client-only
+  `CreativeModeInventoryScreenAccessor` target while loading its Mixin
+  configuration on a dedicated server. This originates from the official
+  dependency JAR and did not load the class or prevent either server start.
+- Minecraft's system report could not query process metrics through OSHI in the
+  managed container.
+- Mojang's public-key request could not resolve through the restricted runtime
+  network. The offline test server still completed world load.
+- Fabric convention tags emitted its generic development warning for missing
+  optional display translations.
+
+### Client Boundary
+
+An opportunity client launch was not attempted: no Xvfb or active X11 display is
+installed, the system package database is read-only, and setting up a graphical
+stack would exceed the requested cloud-client boundary. Client Mixin target
+signatures and the `PlayerModel.slim` access widener were checked against mapped
+26.2 sources; actual interactive client/gameplay verification remains for the
+Windows checklist.
+
+### Production JAR
+
+- File: `build/libs/PlayerCollars-1.6.1+26.2.jar`
+- Type: Loom-remapped production JAR (not dev, sources, test, or unmapped)
+- Size: 331001 bytes
+- SHA-256: `6a70d11b70bbc61a8afca396ddf1ac12aad130dda662e0fe74f0c51318ea5859`
+- Corresponding source: final `26.2` branch HEAD
+
+Archive integrity and metadata checks passed. The JAR contains `fabric.mod.json`,
+both Mixin configurations, the access widener, main and client entrypoint
+classes, two language resources, 133 model entries, 17 texture entries, 59
+recipes, tags, enchantments, loot/advancement data, sounds, and all other
+generated runtime resources. It contains no datagen classes, dangling datagen
+entrypoint, Work path, dev JAR, sources JAR, or test artifact. Embedded metadata
+reports mod ID `playercollars`, version `1.6.1+26.2`, exact Minecraft `26.2`,
+Java 25+, Loader 0.19.3+, Fabric API 0.155.2, and Trinkets Updated
+4.1.0-beta.3.
 
 ### 26.1.2 Baseline Build
 
@@ -98,7 +173,9 @@ Command:
 
 Result: failed during plugin resolution before project compilation. `net.fabricmc.fabric-loom:1.16-SNAPSHOT` was not available from the configured plugin repositories. This is a stale/unreproducible dependency baseline, not a Java compilation failure.
 
-The repository's `gradlew` was tracked without the executable bit, so direct `./gradlew` initially failed with `Permission denied`. The `26.2` branch will restore the executable bit before subsequent required commands.
+The repository's `gradlew` was tracked without the executable bit, so direct
+`./gradlew` initially failed with `Permission denied`. The `26.2` branch restored
+the executable bit in its baseline status commit.
 
 ## Failed Attempts
 
@@ -113,14 +190,22 @@ The repository's `gradlew` was tracked without the executable bit, so direct `./
   artifact cache treats that result as “unsupported,” which only disables
   decompiler worker socket logging. No proxy, sandbox path, patched dependency,
   or Work-specific setting is present in the repository or production JAR.
+- First dedicated-server runtime: failed at Minecraft bootstrap because
+  `BoneItemMixin` targeted the removed
+  `registerItem(String, Item.Properties)` method. Resolved against mapped 26.2
+  `Items` sources with a `ResourceKey<Item>` redirect; two later starts passed.
 
 ## Open Issues
 
-- Inspect the production JAR contents and embedded metadata.
-- Complete fresh and repeat dedicated-server starts and optional headless client launch.
-- Prepare the Windows gameplay regression checklist and final production JAR.
+- Perform the interactive Windows gameplay checklist, including visual
+  rendering, permissions, multiplayer synchronization, and backed-up 26.1.2
+  world/player data compatibility.
+- The non-fatal dedicated-server client-Mixin warning belongs to the official
+  Trinkets Updated 4.1.0-beta.3+26.2 JAR and cannot be corrected inside Player
+  Collars without replacing or patching that dependency.
 
 ## Next Step
 
-Run a fresh dedicated Fabric server, wait for a completed world startup, stop it
-cleanly, and repeat with the saved test world.
+Install the production JAR with the exact dependency set on Windows and execute
+`GAMEPLAY_TEST_26.2.md`, starting with multiplayer ownership/leash behavior and
+a backed-up 26.1.2 compatibility world.

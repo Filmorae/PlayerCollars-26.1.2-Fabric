@@ -29,9 +29,6 @@
     ],
     "client": [
       "org.jlortiz.playercollars.client.RegisterClient"
-    ],
-    "fabric-datagen": [
-      "org.jlortiz.playercollars.datagen.DatagenEntrypoint"
     ]
   },
   "mixins": [
