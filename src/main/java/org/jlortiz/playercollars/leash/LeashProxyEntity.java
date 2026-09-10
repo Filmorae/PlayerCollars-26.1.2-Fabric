@@ -25,21 +25,29 @@ public final class LeashProxyEntity extends Turtle {
     public static final String MARKER_TAG = "playercollars.leash_anchor";
 
     private boolean proxyUpdate() {
-        if (proxyIsRemoved()) return false;
+        if (proxyIsRemoved())
+            return false;
 
-        if (target == null) return true;
-        if (target.level() != level() || !target.isAlive()) return true;
+        if (target == null)
+            return true;
+        if (target.level() != level() || !target.isAlive())
+            return true;
 
         Vec3 posActual = this.position();
         Vec3 posTarget = switch (target.getPose()) {
             // No point in making cases for SPIN_ATTACK since leashed players can't use it
-            case CROUCHING: yield new Vec3(0.0D, 1.1D, -0.15D);
-            case SWIMMING: yield Vec3.directionFromRotation(0, target.getVisualRotationYInDegrees()).scale(0.35).add(0, 0.2, -0.1);
-            case FALL_FLYING: yield new Vec3(0, 1.3, -0.15).xRot(-Math.toRadians(90 + target.getXRot()))
-                    .yRot(-Math.toRadians(target.getVisualRotationYInDegrees()));
-            case SLEEPING: if (target.getBedOrientation() != null)
+            case CROUCHING:
+                yield new Vec3(0.0D, 1.1D, -0.15D);
+            case SWIMMING:
+                yield Vec3.directionFromRotation(0, target.getVisualRotationYInDegrees()).scale(0.35).add(0, 0.2, -0.1);
+            case FALL_FLYING:
+                yield new Vec3(0, 1.3, -0.15).xRot(-Math.toRadians(90 + target.getXRot()))
+                        .yRot(-Math.toRadians(target.getVisualRotationYInDegrees()));
+            case SLEEPING:
+                if (target.getBedOrientation() != null)
                     yield new Vec3(target.getBedOrientation().step().mul(-0.2f)).add(0, 0.1, -0.15);
-            default: yield new Vec3(0.0D, 1.3D, -0.15D);
+            default:
+                yield new Vec3(0.0D, 1.3D, -0.15D);
         };
         posTarget = posTarget.scale(target.getScale()).add(target.position());
 
@@ -59,7 +67,8 @@ public final class LeashProxyEntity extends Turtle {
 
     @Override
     public void tick() {
-        if (this.level().isClientSide()) return;
+        if (this.level().isClientSide())
+            return;
         if (proxyUpdate() && !proxyIsRemoved()) {
             proxyRemove();
         }
@@ -90,7 +99,7 @@ public final class LeashProxyEntity extends Turtle {
     public static final String TEAM_NAME = "leashplayersimpl";
 
     public LeashProxyEntity(@NotNull LivingEntity target) {
-        super(EntityType.TURTLE, target.level());
+        super(EntityTypes.TURTLE, target.level());
         this.target = target;
 
         setHealth(1.0F);

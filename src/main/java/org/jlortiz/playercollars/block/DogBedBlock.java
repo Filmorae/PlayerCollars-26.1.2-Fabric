@@ -37,12 +37,8 @@ public class DogBedBlock extends BedBlock {
         return SHAPE;
     }
 
-    @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return null;
-    }
-
     public static ResourceKey<Block> getRegistryKey(DyeColor c) {
-        return ResourceKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath(PlayerCollarsMod.MOD_ID, c.getName() + "_dog_bed"));
+        return ResourceKey.create(Registries.BLOCK,
+                Identifier.fromNamespaceAndPath(PlayerCollarsMod.MOD_ID, c.getName() + "_dog_bed"));
     }
 }
